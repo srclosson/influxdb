@@ -360,6 +360,11 @@ export const VIS_GRAPHICS = [
     graphic: GRAPHIC_SVGS[ViewType.LinePlusSingleStat],
   },
   {
+    type: ViewType.Histogram,
+    name: 'Histogram',
+    graphic: GRAPHIC_SVGS[ViewType.XY], // FIXME
+  },
+  {
     type: ViewType.SingleStat,
     name: 'Single Stat',
     graphic: GRAPHIC_SVGS[ViewType.SingleStat],

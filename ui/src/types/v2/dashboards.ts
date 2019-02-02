@@ -122,6 +122,7 @@ export type ViewProperties =
   | MarkdownView
   | EmptyView
   | LogViewerView
+  | HistogramView
 
 export type QueryViewProperties = Extract<
   ViewProperties,
@@ -218,6 +219,11 @@ export interface TableView {
   showNoteWhenEmpty: boolean
 }
 
+export interface HistogramView {
+  type: ViewType.Histogram
+  queries: DashboardQuery[]
+}
+
 export interface MarkdownView {
   type: ViewType.Markdown
   shape: ViewShape.ChronografV2
@@ -255,6 +261,7 @@ export enum ViewType {
   Table = 'table',
   Markdown = 'markdown',
   LogViewer = 'log-viewer',
+  Histogram = 'histogram',
 }
 
 export interface DashboardFile {
