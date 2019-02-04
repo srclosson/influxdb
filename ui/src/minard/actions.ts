@@ -22,7 +22,6 @@ export const registerLayer = (
   type: 'REGISTER_LAYER',
   payload: {layerKey, table, aesthetics},
 })
-
 interface UnregisterLayerAction {
   type: 'UNREGISTER_LAYER'
   payload: {layerKey: string}
@@ -35,6 +34,20 @@ export const unregisterLayer = (layerKey: string): UnregisterLayerAction => ({
 
 interface ResetAction {
   type: 'RESET'
+  payload: {
+    table: Table
+    width: number
+    height: number
+    aesthetics: AestheticDataMappings
+  }
 }
 
-export const reset = (): ResetAction => ({type: 'RESET'})
+export const reset = (
+  table: Table,
+  width: number,
+  height: number,
+  aesthetics: AestheticDataMappings
+): ResetAction => ({
+  type: 'RESET',
+  payload: {table, width, height, aesthetics},
+})

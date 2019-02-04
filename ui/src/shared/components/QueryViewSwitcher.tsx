@@ -86,13 +86,7 @@ export default class QueryViewSwitcher extends PureComponent<Props> {
           </DygraphContainer>
         )
       case ViewType.Histogram:
-        return (
-          <AutoSizer>
-            {({width, height}) => (
-              <InfluxHistogram width={width} height={height} tables={tables} />
-            )}
-          </AutoSizer>
-        )
+        return <InfluxHistogram width={300} height={200} tables={tables} />
       default:
         return <div />
     }

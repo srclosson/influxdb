@@ -24,16 +24,23 @@ export interface Layer {
   scales: AestheticScaleMappings
 }
 
-export interface Margins {top: number, right: number, bottom: number, left: number}
+export interface Margins {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
 
 export interface PlotEnv {
-  table: Table
   width: number
   height: number
   innerWidth: number
   innerHeight: number
   defaults: Layer
   layers: {[layerKey: string]: Layer}
+  xTicks: string[]
+  yTicks: string[]
+  margins: Margins
   dispatch: (action: PlotAction) => void
 }
 
@@ -59,8 +66,10 @@ export interface PlotProps {
   // Aesthetic mappings
   x?: string
   y?: string
-  x0?: string
-  x1?: string
+  start?: string
+  stop?: string
+  lower?: string
+  upper?: string
   stroke?: string
   strokeWidth?: string
   fill?: string
