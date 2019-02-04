@@ -1,16 +1,40 @@
-export {Histogram} from 'src/minard/components/Histogram'
+import {PlotAction} from 'src/minard/actions'
+
 export {Plot} from 'src/minard/components/Plot'
 
-type Scale = any
+export {
+  Histogram,
+  Props as HistogramProps,
+  PositionKind as HistogramPositionKind,
+} from 'src/minard/components/Histogram'
+
+export type Scale = any
+
+export interface AestheticDataMappings {
+  [aestheticName: string]: string
+}
+
+export interface AestheticScaleMappings {
+  [aestheticName: string]: Scale
+}
+
+export interface Layer {
+  table?: Table
+  aesthetics: AestheticDataMappings
+  scales: AestheticScaleMappings
+}
+
+export interface Margins {top: number, right: number, bottom: number, left: number}
 
 export interface PlotEnv {
+  table: Table
   width: number
   height: number
   innerWidth: number
   innerHeight: number
-  aesthetics: {[aestheticName: string]: string}
-  setAesthetic: (aestheticName: string) => void
-  scales: {[aestheticName: string]: Scale}
+  defaults: Layer
+  layers: {[layerKey: string]: Layer}
+  dispatch: (action: PlotAction) => void
 }
 
 export enum ColumnType {
@@ -47,6 +71,14 @@ export interface PlotProps {
   // Misc options
   xBrushable?: boolean
   yBrushable?: boolean
+  xAxisTitle?: string
+  yAxisTitle?: string
+  xAxisPrefix?: string
+  yAxisPrefix?: string
+  xAxisSuffix?: string
+  yAxisSuffix?: string
+
+  // TODO: facet specification / auto faceting
 }
 
 export enum InterpolationKind {
@@ -90,18 +122,6 @@ export interface PointProps {
   shape?: ShapeKind
   radius?: number
   alpha?: number
-}
-
-export enum HistogramPositionKind {
-  Stack = 'stack',
-  Overlay = 'overlay',
-  Dodge = 'dodge',
-}
-
-export interface HistogramProps {
-  x?: string
-  fill?: string
-  position?: HistogramPositionKind
 }
 
 export interface ContinuousBarProps {

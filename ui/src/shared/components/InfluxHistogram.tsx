@@ -16,11 +16,11 @@ interface Props {
 
 const InfluxHistogram: SFC<Props> = props => {
   const {tables, width, height} = props
-  const table = useMemo(() => toMinardTable(tables), [tables])
+  const {table} = useMemo(() => toMinardTable(tables), [tables])
 
   return (
-    <Plot table={table} width={width} height={height} x="_value">
-      {env => <Histogram env={env} />}
+    <Plot table={table} width={width} height={height}>
+      {env => <Histogram env={env} x="_value" />}
     </Plot>
   )
 }

@@ -2,6 +2,7 @@ import {ViewType, ViewShape} from 'src/types/v2'
 import {
   XYView,
   XYViewGeom,
+  HistogramView,
   LinePlusSingleStatView,
   SingleStatView,
   TableView,
@@ -114,6 +115,12 @@ const NEW_VIEW_CREATORS = {
       type: ViewType.XY,
       shape: ViewShape.ChronografV2,
       geom: XYViewGeom.Line,
+    },
+  }),
+  [ViewType.Histogram]: (): NewView<HistogramView> => ({
+    ...defaultView(),
+    properties: {
+      type: ViewType.Histogram,
     },
   }),
   [ViewType.SingleStat]: (): NewView<SingleStatView> => ({
