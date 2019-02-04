@@ -85,16 +85,27 @@ export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
             y: yScale,
           },
         }
+
+        return
       }
 
       case 'UNREGISTER_LAYER': {
         const {layerKey} = action.payload
 
         delete state.layers[layerKey]
+
+        return
       }
 
       case 'RESET': {
-        // TODO: Compute scales
+        const {table, width, height, aesthetics} = action.payload
+
+        draftState.defaults.table = table
+        draftState.defaults.aesthetics = aesthetics
+        draftState.width = width
+        draftState.height = height
+
+        return
       }
     }
   })
