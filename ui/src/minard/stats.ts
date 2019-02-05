@@ -18,18 +18,18 @@ export const bin = (
     .domain(extent(column))
     .thresholds(binCount)(column)
 
-  const binStart = []
-  const binStop = []
+  const xMin = []
+  const xMax = []
   const count = []
 
   for (const bin of bins) {
-    binStart.push(bin.x0)
-    binStop.push(bin.x1)
+    xMin.push(bin.x0)
+    xMax.push(bin.x1)
     count.push(bin.length)
   }
 
   const table = {
-    columns: {binStart, binStop, count},
+    columns: {xMin, xMax, count},
     columnTypes: {
       binStart: columnType,
       binStop: columnType,
@@ -38,8 +38,8 @@ export const bin = (
   }
 
   const mappings = {
-    x0: 'binStart',
-    x1: 'binStop',
+    xMin: 'xMin',
+    xMax: 'xMax',
     y: 'count',
   }
 

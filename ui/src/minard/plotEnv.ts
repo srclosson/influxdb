@@ -2,10 +2,15 @@ import {extent, ticks} from 'd3-array'
 import {scaleLinear} from 'd3-scale'
 import {produce} from 'immer'
 
-import {PlotEnv} from 'src/minard'
+import {
+  PlotEnv,
+  PLOT_PADDING,
+  TICK_CHAR_WIDTH,
+  TICK_CHAR_HEIGHT,
+  TICK_PADDING_RIGHT,
+  TICK_PADDING_TOP,
+} from 'src/minard'
 import {PlotAction} from 'src/minard/actions'
-
-const PADDING = 10
 
 export const INITIAL_PLOT_ENV: PlotEnv = {
   width: 0,
@@ -20,71 +25,27 @@ export const INITIAL_PLOT_ENV: PlotEnv = {
   layers: {},
   xTicks: [],
   yTicks: [],
-  margins: {top: PADDING, right: PADDING, bottom: PADDING, left: PADDING},
+  xDomain: [],
+  yDomain: [],
+  margins: {
+    top: PLOT_PADDING,
+    right: PLOT_PADDING,
+    bottom: PLOT_PADDING,
+    left: PLOT_PADDING,
+  },
   dispatch: () => {},
 }
 
-// 1. compute x and y domains
-// 2. generate x and y ticks
-// 3. measure innerHeight, innerWidth
-// 4. compute scales
-// 5. compute scales for all other aesthetics
-// 6. collect env
 export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
   produce(state, draftState => {
     switch (action.type) {
       case 'REGISTER_LAYER': {
         const {layerKey, table, aesthetics} = action.payload
-        const {columns} = table
-        const {x0, x1, y} = aesthetics
-        const xDomain = extent([...extent(columns[x0]), ...extent(columns[x1])])
-        const yDomain = extent(columns[y])
 
-        const xTicks: string[] = ticks(xDomain[0], xDomain[1], 4).map(t =>
-          String(t)
-        )
+        draftState.layers[layerKey] = {table, aesthetics, scales: {}}
 
-        const yTicks: string[] = ticks(yDomain[0], yDomain[1], 4).map(t =>
-          String(t)
-        )
-
-        // TODO: Count based on dimensions, measure text metrics
-        const xTickHeight = 10
-        const yTickWidth = Math.max(...yTicks.map(t => t.length)) * 4
-
-        const margins = {
-          top: PADDING,
-          right: PADDING,
-          bottom: xTickHeight + PADDING,
-          left: yTickWidth + PADDING,
-        }
-
-        const xScale = scaleLinear()
-          .domain(xDomain)
-          .range([
-            margins.left,
-            margins.left + (state.width - margins.left - margins.right),
-          ])
-
-        const yScale = scaleLinear()
-          .domain(yDomain)
-          .range([
-            margins.top + (state.height - margins.top - margins.bottom),
-            margins.top,
-          ])
-
-        draftState.xTicks = xTicks
-        draftState.yTicks = yTicks
-        draftState.margins = margins
-        draftState.layers[layerKey] = {
-          table,
-          aesthetics,
-          scales: {
-            x0: xScale,
-            x1: xScale,
-            y: yScale,
-          },
-        }
+        computeXYDomain(draftState)
+        computeXYLayout(draftState)
 
         return
       }
@@ -92,20 +53,103 @@ export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
       case 'UNREGISTER_LAYER': {
         const {layerKey} = action.payload
 
-        delete state.layers[layerKey]
+        delete draftState.layers[layerKey]
+
+        computeXYDomain(draftState)
+        computeXYLayout(draftState)
 
         return
       }
 
-      case 'RESET': {
-        const {table, width, height, aesthetics} = action.payload
+      case 'SET_DIMENSIONS': {
+        const {width, height} = action.payload
 
-        draftState.defaults.table = table
-        draftState.defaults.aesthetics = aesthetics
         draftState.width = width
         draftState.height = height
 
+        computeXYLayout(draftState)
+
         return
+      }
+
+      case 'SET_TABLE': {
+        draftState.defaults.table = action.payload.table
       }
     }
   })
+
+const getCols = (state: PlotEnv, aestheticNames: string[]): any[][] => {
+  const {defaults, layers} = state
+
+  const cols = []
+
+  for (const layer of [defaults, ...Object.values(layers)]) {
+    for (const aestheticName of aestheticNames) {
+      if (layer.aesthetics[aestheticName]) {
+        const colName = layer.aesthetics[aestheticName]
+        const col = layer.table
+          ? layer.table.columns[colName]
+          : defaults.table.columns[colName]
+
+        cols.push(col)
+      }
+    }
+  }
+
+  return cols
+}
+
+const flatten = (arrays: any[][]): any[] => [].concat(...arrays)
+
+// TODO: Memoize computation by comparing to previous state
+const computeXYDomain = (draftState: PlotEnv): void => {
+  draftState.xDomain = extent(
+    flatten(getCols(draftState, ['x', 'xMin', 'xMax']).map(col => extent(col)))
+  )
+
+  draftState.yDomain = extent(
+    flatten(getCols(draftState, ['y', 'yMin', 'yMax']).map(col => extent(col)))
+  )
+}
+
+const getTicks = ([d0, d1]: number[], length: number): string[] => {
+  const approxTickWidth =
+    Math.max(String(d0).length, String(d1).length) * TICK_CHAR_WIDTH
+  const TICK_DENSITY = 0.2
+  const numTicks = (length / approxTickWidth) * TICK_DENSITY
+  const result = ticks(d0, d1, numTicks).map(t => String(t))
+
+  return result
+}
+
+const computeXYLayout = (draftState: PlotEnv): void => {
+  const {width, height, xDomain, yDomain} = draftState
+
+  draftState.xTicks = getTicks(xDomain, width)
+  draftState.yTicks = getTicks(yDomain, height)
+
+  const yTickWidth =
+    Math.max(...draftState.yTicks.map(t => t.length)) * TICK_CHAR_WIDTH
+
+  const margins = {
+    top: PLOT_PADDING,
+    right: PLOT_PADDING,
+    bottom: TICK_CHAR_HEIGHT + TICK_PADDING_TOP + PLOT_PADDING,
+    left: yTickWidth + TICK_PADDING_RIGHT + PLOT_PADDING,
+  }
+
+  const innerWidth = width - margins.left - margins.right
+  const innerHeight = height - margins.top - margins.bottom
+
+  draftState.margins = margins
+  draftState.innerWidth = innerWidth
+  draftState.innerHeight = innerHeight
+
+  draftState.defaults.scales.x = scaleLinear()
+    .domain(xDomain)
+    .range([0, innerWidth])
+
+  draftState.defaults.scales.y = scaleLinear()
+    .domain(yDomain)
+    .range([innerHeight, 0])
+}

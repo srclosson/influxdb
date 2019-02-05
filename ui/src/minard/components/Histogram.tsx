@@ -5,7 +5,7 @@ import {PlotEnv} from 'src/minard'
 import * as stats from 'src/minard/stats'
 import {assert} from 'src/minard/utils/assert'
 import {registerLayer, unregisterLayer} from 'src/minard/actions'
-import {HistogramBars} from 'src/minard/components/HistogramBars'
+import HistogramBars from 'src/minard/components/HistogramBars'
 
 export enum PositionKind {
   Stack = 'stack',
@@ -50,22 +50,28 @@ export const Histogram: SFC<Props> = props => {
     return null
   }
 
-  const {scales} = layer
-  const {x0, x1, y} = layer.aesthetics
-  const {columns} = layer.table
+  const {
+    innerWidth,
+    innerHeight,
+    defaults: {
+      scales: {x: xScale, y: yScale},
+    },
+  } = props.env
 
-  if (!(x0 && x1 && y)) {
-    return null
-  }
+  const {
+    aesthetics: {xMin, xMax, y},
+    table: {columns},
+  } = layer
 
   return (
     <HistogramBars
-      x0={columns[x0]}
-      x1={columns[x1]}
+      width={innerWidth}
+      height={innerHeight}
+      xMin={columns[xMin]}
+      xMax={columns[xMax]}
       y={columns[y]}
-      x0Scale={scales.x0}
-      x1Scale={scales.x1}
-      yScale={scales.y}
+      xScale={xScale}
+      yScale={yScale}
     />
   )
 }
