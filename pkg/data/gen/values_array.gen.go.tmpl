@@ -1,0 +1,33 @@
+package gen
+
+{{range .}}
+type {{.Name}}ArrayValuesSequence struct {
+	v  []{{.Type}}
+	vi int
+}
+
+func New{{.Name}}ArrayValuesSequence(v []{{.Type}}) *{{.Name}}ArrayValuesSequence {
+	return &{{.Name}}ArrayValuesSequence{
+		v: v,
+	}
+}
+
+func (g *{{.Name}}ArrayValuesSequence) Reset() {
+	g.vi = 0
+}
+
+func (g *{{.Name}}ArrayValuesSequence) Write(vs []{{.Type}}) {
+	var (
+		v  = g.v
+		vi = g.vi
+	)
+	for i := 0; i < len(vs); i++ {
+		if vi >= len(v) {
+			vi = 0
+		}
+		vs[i] = v[vi]
+		vi += 1
+	}
+	g.vi = vi
+}
+{{end}}

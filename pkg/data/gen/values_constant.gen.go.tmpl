@@ -1,0 +1,22 @@
+package gen
+
+{{range .}}
+type {{.Name}}ConstantValuesSequence struct {
+	v {{.Type}}
+}
+
+func New{{.Name}}ConstantValuesSequence(v {{.Type}}) *{{.Name}}ConstantValuesSequence {
+	return &{{.Name}}ConstantValuesSequence{
+		v: v,
+	}
+}
+
+func (g *{{.Name}}ConstantValuesSequence) Reset() {
+}
+
+func (g *{{.Name}}ConstantValuesSequence) Write(vs []{{.Type}}) {
+	for i := 0; i < len(vs); i++ {
+		vs[i] = g.v
+	}
+}
+{{end}}
