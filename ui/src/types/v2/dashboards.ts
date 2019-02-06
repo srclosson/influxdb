@@ -1,3 +1,4 @@
+import {HistogramPosition} from 'src/minard'
 import {Color} from 'src/types/colors'
 import {Label} from '@influxdata/influx'
 import {
@@ -222,6 +223,10 @@ export interface TableView {
 export interface HistogramView {
   type: ViewType.Histogram
   queries: DashboardQuery[]
+  x: string
+  fill: string
+  position: HistogramPosition
+  binCount: number
 }
 
 export interface MarkdownView {

@@ -7,7 +7,7 @@ import {assert} from 'src/minard/utils/assert'
 import {registerLayer, unregisterLayer} from 'src/minard/actions'
 import HistogramBars from 'src/minard/components/HistogramBars'
 
-export enum PositionKind {
+export enum Position {
   Stacked = 'stacked',
   Overlaid = 'overlaid',
 }
@@ -16,7 +16,7 @@ export interface Props {
   env: PlotEnv
   x?: string
   fill?: string
-  position?: PositionKind
+  position?: Position
   bins?: number
 }
 
@@ -86,7 +86,7 @@ export const Histogram: SFC<Props> = props => {
       fillScale={fillScale}
       xScale={xScale}
       yScale={yScale}
-      position={props.position || PositionKind.Stacked}
+      position={props.position || Position.Stacked}
     />
   )
 }

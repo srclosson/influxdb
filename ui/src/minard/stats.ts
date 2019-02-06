@@ -5,7 +5,7 @@ import {
   AestheticDataMappings,
   ColumnType,
   Table,
-  HistogramPositionKind,
+  HistogramPosition,
 } from 'src/minard'
 
 export const bin = (
@@ -14,7 +14,7 @@ export const bin = (
   fillCol: string[],
   fillColType: ColumnType,
   binCount: number = 30,
-  position: HistogramPositionKind
+  position: HistogramPosition
 ): [Table, AestheticDataMappings] => {
   assert(
     `unsupported value column type "${xColType}"`,
@@ -57,7 +57,7 @@ export const bin = (
     for (const bin of bins) {
       let fillYMin = 0
 
-      if (position === HistogramPositionKind.Stacked) {
+      if (position === HistogramPosition.Stacked) {
         fillYMin = fillValues
           .slice(0, i)
           .reduce((sum, f) => sum + (bin.values[f] || 0), 0)
@@ -87,8 +87,12 @@ export const bin = (
 
 const createBins = (
   col: number[],
-  binCount: number = thresholdSturges(col)
+  binCount: number
 ): Array<{max: number; min: number; values: {}}> => {
+  if (!binCount) {
+    binCount = thresholdSturges(col)
+  }
+
   const [d0, d1] = extent(col)
 
   const bins = range(d0, d1, (d1 - d0) / binCount).map(min => ({

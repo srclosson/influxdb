@@ -80,9 +80,7 @@ export const Axes: SFC<Props> = props => {
   const canvas = useRef<HTMLCanvasElement>(null)
 
   useLayoutEffect(
-    () => {
-      drawAxes(canvas.current, env, axesStroke, tickFont, tickFill)
-    },
+    () => drawAxes(canvas.current, env, axesStroke, tickFont, tickFill),
     [canvas.current, env, axesStroke, tickFont, tickFill]
   )
 

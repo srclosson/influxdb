@@ -10,7 +10,7 @@ export {Plot} from 'src/minard/components/Plot'
 
 export {
   Histogram,
-  PositionKind as HistogramPositionKind,
+  Position as HistogramPosition,
 } from 'src/minard/components/Histogram'
 
 export type Scale = any

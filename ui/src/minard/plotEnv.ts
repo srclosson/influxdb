@@ -122,7 +122,7 @@ const computeXYDomain = (draftState: PlotEnv): void => {
 const getTicks = ([d0, d1]: number[], length: number): string[] => {
   const approxTickWidth =
     Math.max(String(d0).length, String(d1).length) * TICK_CHAR_WIDTH
-  const TICK_DENSITY = 0.4
+  const TICK_DENSITY = 0.2
   const numTicks = Math.round((length / approxTickWidth) * TICK_DENSITY)
   const result = ticks(d0, d1, numTicks).map(t => String(t))
 

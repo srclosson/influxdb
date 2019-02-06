@@ -1,7 +1,7 @@
 import React, {useRef, useLayoutEffect, SFC} from 'react'
 import chroma from 'chroma-js'
 
-import {Scale, HistogramPositionKind} from 'src/minard'
+import {Scale, HistogramPosition} from 'src/minard'
 import {clearCanvas} from 'src/minard/utils/clearCanvas'
 
 import {LINE_COLORS_A} from 'src/shared/constants/graphColorPalettes'
@@ -20,7 +20,7 @@ interface Props {
   xScale: Scale
   yScale: Scale
   fillScale: Scale
-  position: HistogramPositionKind
+  position: HistogramPosition
 }
 
 const drawBars = (
@@ -43,10 +43,14 @@ const drawBars = (
   const context = canvas.getContext('2d')
 
   for (let i = 0; i < yMax.length; i++) {
+    if (yMin[i] === yMax[i]) {
+      continue
+    }
+
     const x = Math.floor(xScale(xMin[i]))
     const _y = Math.floor(yScale(yMax[i]))
     const width = Math.floor(xScale(xMax[i])) - Math.floor(x)
-    const height = Math.floor(yScale(yMin[i])) - Math.floor(_y)
+    const height = Math.floor(yScale(yMin[i])) - Math.floor(_y) - 1
     const color = fill && fillScale ? fillScale(fill[i]) : DEFAULT_FILL
 
     context.globalAlpha = 0.6

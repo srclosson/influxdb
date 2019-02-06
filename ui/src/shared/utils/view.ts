@@ -1,4 +1,5 @@
 import {ViewType, ViewShape} from 'src/types/v2'
+import {HistogramPosition} from 'src/minard'
 import {
   XYView,
   XYViewGeom,
@@ -120,7 +121,12 @@ const NEW_VIEW_CREATORS = {
   [ViewType.Histogram]: (): NewView<HistogramView> => ({
     ...defaultView(),
     properties: {
+      queries: [],
       type: ViewType.Histogram,
+      x: '_value',
+      fill: 'table',
+      position: HistogramPosition.Stacked,
+      binCount: 60,
     },
   }),
   [ViewType.SingleStat]: (): NewView<SingleStatView> => ({
