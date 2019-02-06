@@ -21,7 +21,7 @@ export interface Props {
   // upper?: string
   // stroke?: string
   // strokeWidth?: string
-  // fill?: string
+  fill?: string
   // shape?: ShapeKind
   // radius?: number
   // alpha?: number
@@ -46,6 +46,7 @@ export const Plot: SFC<Props> = ({
   width,
   height,
   table,
+  fill,
   x,
   children,
   axesStroke = '#31313d',
@@ -56,7 +57,7 @@ export const Plot: SFC<Props> = ({
     ...INITIAL_PLOT_ENV,
     width,
     height,
-    defaults: {table, aesthetics: {x}, scales: {}},
+    defaults: {table, aesthetics: {x, fill}, scales: {}},
   })
 
   useEffect(() => dispatch(setTable(table)), [table])

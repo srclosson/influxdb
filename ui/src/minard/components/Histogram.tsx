@@ -8,9 +8,8 @@ import {registerLayer, unregisterLayer} from 'src/minard/actions'
 import HistogramBars from 'src/minard/components/HistogramBars'
 
 export enum PositionKind {
-  Stack = 'stack',
-  Overlay = 'overlay',
-  Dodge = 'dodge',
+  Stacked = 'stacked',
+  Overlaid = 'overlaid',
 }
 
 export interface Props {
@@ -24,26 +23,37 @@ export interface Props {
 export const Histogram: SFC<Props> = props => {
   const [layerKey] = useState(() => uuid.v4())
 
+  const {bins, position} = props
   const {layers, defaults, dispatch} = props.env
   const layer = layers[layerKey]
   const table = defaults.table
   const x = props.x || defaults.aesthetics.x
+  const fill = props.fill || defaults.aesthetics.fill
 
   useEffect(
     () => {
-      const column = table.columns[x]
-      const columnType = table.columnTypes[x]
+      const xCol = table.columns[x]
+      const xColType = table.columnTypes[x]
+      const fillCol = table.columns[fill]
+      const fillColType = table.columnTypes[fill]
 
       assert('expected an `x` aesthetic', !!x)
-      assert(`table does not contain column "${x}"`, !!column)
+      assert(`table does not contain column "${x}"`, !!xCol)
 
-      const [statTable, mappings] = stats.bin(column, columnType, props.bins)
+      const [statTable, mappings] = stats.bin(
+        xCol,
+        xColType,
+        fillCol,
+        fillColType,
+        bins,
+        position
+      )
 
       dispatch(registerLayer(layerKey, statTable, mappings))
 
       return () => dispatch(unregisterLayer(layerKey))
     },
-    [table, x]
+    [table, x, fill, position, bins]
   )
 
   if (!layer) {
@@ -59,19 +69,24 @@ export const Histogram: SFC<Props> = props => {
   } = props.env
 
   const {
-    aesthetics: {xMin, xMax, y},
+    aesthetics,
     table: {columns},
+    scales: {fill: fillScale},
   } = layer
 
   return (
     <HistogramBars
       width={innerWidth}
       height={innerHeight}
-      xMin={columns[xMin]}
-      xMax={columns[xMax]}
-      y={columns[y]}
+      xMin={columns[aesthetics.xMin]}
+      xMax={columns[aesthetics.xMax]}
+      yMin={columns[aesthetics.yMin]}
+      yMax={columns[aesthetics.yMax]}
+      fill={columns[aesthetics.fill]}
+      fillScale={fillScale}
       xScale={xScale}
       yScale={yScale}
+      position={props.position || PositionKind.Stacked}
     />
   )
 }

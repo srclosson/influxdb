@@ -1,6 +1,6 @@
 // Libraries
 import React, {useMemo, SFC} from 'react'
-import {Plot, Histogram} from 'src/minard'
+import {Plot, Histogram, HistogramPositionKind} from 'src/minard'
 
 // Utils
 import {toMinardTable} from 'src/shared/utils/toMinardTable'
@@ -20,7 +20,14 @@ const InfluxHistogram: SFC<Props> = props => {
 
   return (
     <Plot table={table} width={width} height={height}>
-      {env => <Histogram env={env} x="_value" />}
+      {env => (
+        <Histogram
+          env={env}
+          x="_value"
+          fill="table"
+          position={HistogramPositionKind.Stacked}
+        />
+      )}
     </Plot>
   )
 }

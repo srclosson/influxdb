@@ -1,9 +1,11 @@
 import {extent, ticks} from 'd3-array'
-import {scaleLinear} from 'd3-scale'
+import {scaleLinear, scaleOrdinal} from 'd3-scale'
 import {produce} from 'immer'
+import chroma from 'chroma-js'
 
 import {
   PlotEnv,
+  Layer,
   PLOT_PADDING,
   TICK_CHAR_WIDTH,
   TICK_CHAR_HEIGHT,
@@ -11,6 +13,10 @@ import {
   TICK_PADDING_TOP,
 } from 'src/minard'
 import {PlotAction} from 'src/minard/actions'
+
+import {LINE_COLORS_A} from 'src/shared/constants/graphColorPalettes'
+
+const COLORS = LINE_COLORS_A.map(c => c.hex)
 
 export const INITIAL_PLOT_ENV: PlotEnv = {
   width: 0,
@@ -46,6 +52,7 @@ export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
 
         computeXYDomain(draftState)
         computeXYLayout(draftState)
+        computeFillScale(draftState.layers[layerKey])
 
         return
       }
@@ -115,8 +122,8 @@ const computeXYDomain = (draftState: PlotEnv): void => {
 const getTicks = ([d0, d1]: number[], length: number): string[] => {
   const approxTickWidth =
     Math.max(String(d0).length, String(d1).length) * TICK_CHAR_WIDTH
-  const TICK_DENSITY = 0.2
-  const numTicks = (length / approxTickWidth) * TICK_DENSITY
+  const TICK_DENSITY = 0.4
+  const numTicks = Math.round((length / approxTickWidth) * TICK_DENSITY)
   const result = ticks(d0, d1, numTicks).map(t => String(t))
 
   return result
@@ -152,4 +159,28 @@ const computeXYLayout = (draftState: PlotEnv): void => {
   draftState.defaults.scales.y = scaleLinear()
     .domain(yDomain)
     .range([innerHeight, 0])
+}
+
+const computeFillScale = (draftState: Layer) => {
+  const {
+    table,
+    aesthetics: {fill},
+  } = draftState
+
+  if (!fill) {
+    return
+  }
+
+  const domain = [...new Set(table.columns[fill])]
+
+  const range = chroma
+    .scale(COLORS)
+    .mode('lch')
+    .colors(domain.length)
+
+  const scale = scaleOrdinal()
+    .domain(domain)
+    .range(range)
+
+  draftState.scales.fill = scale
 }
