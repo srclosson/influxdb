@@ -23,7 +23,7 @@ interface Props {
   position: HistogramPositionKind
 }
 
-const drawStackedBars = (
+const drawBars = (
   canvas: HTMLCanvasElement,
   {
     width,
@@ -43,46 +43,10 @@ const drawStackedBars = (
   const context = canvas.getContext('2d')
 
   for (let i = 0; i < yMax.length; i++) {
-    const x = xScale(xMin[i])
-    const _y = yScale(yMax[i])
-    const width = xScale(xMax[i]) - x
-    const height = yScale(yMin[i]) - _y
-    const color = fill && fillScale ? fillScale(fill[i]) : DEFAULT_FILL
-
-    context.globalAlpha = 0.6
-    context.fillStyle = color
-    context.fillRect(x, _y, width, height)
-
-    context.globalAlpha = 1
-    context.strokeStyle = color
-    context.strokeRect(x, _y, width, height)
-  }
-}
-
-const drawOverlaidBars = (
-  canvas: HTMLCanvasElement,
-  {
-    width,
-    height,
-    xMin,
-    xMax,
-    yMin,
-    yMax,
-    fill,
-    xScale,
-    yScale,
-    fillScale,
-  }: Props
-): void => {
-  clearCanvas(canvas, width, height)
-
-  const context = canvas.getContext('2d')
-
-  for (let i = 0; i < yMax.length; i++) {
-    const x = xScale(xMin[i])
-    const _y = yScale(yMax[i])
-    const width = xScale(xMax[i]) - x
-    const height = yScale(yMin[i]) - _y
+    const x = Math.floor(xScale(xMin[i]))
+    const _y = Math.floor(yScale(yMax[i]))
+    const width = Math.floor(xScale(xMax[i])) - Math.floor(x)
+    const height = Math.floor(yScale(yMin[i])) - Math.floor(_y)
     const color = fill && fillScale ? fillScale(fill[i]) : DEFAULT_FILL
 
     context.globalAlpha = 0.6
@@ -98,13 +62,7 @@ const drawOverlaidBars = (
 const HistogramBars: SFC<Props> = props => {
   const canvas = useRef<HTMLCanvasElement>(null)
 
-  useLayoutEffect(() => {
-    if (props.position === HistogramPositionKind.Stacked) {
-      drawStackedBars(canvas.current, props)
-    } else if (props.position === HistogramPositionKind.Overlaid) {
-      drawOverlaidBars(canvas.current, props)
-    }
-  })
+  useLayoutEffect(() => drawBars(canvas.current, props))
 
   return <canvas className="minard-layer histogram" ref={canvas} />
 }
