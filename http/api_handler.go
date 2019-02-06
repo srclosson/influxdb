@@ -59,7 +59,7 @@ type APIBackend struct {
 	OrganizationOperationLogService influxdb.OrganizationOperationLogService
 	SourceService                   influxdb.SourceService
 	MacroService                    influxdb.MacroService
-	BasicAuthService                influxdb.BasicAuthService
+	PasswordsService                influxdb.PasswordsService
 	OnboardingService               influxdb.OnboardingService
 	ProxyQueryService               query.ProxyQueryService
 	TaskService                     influxdb.TaskService
@@ -95,7 +95,7 @@ func NewAPIHandler(b *APIBackend) *APIHandler {
 
 	h.UserHandler = NewUserHandler()
 	h.UserHandler.UserService = authorizer.NewUserService(b.UserService)
-	h.UserHandler.BasicAuthService = b.BasicAuthService
+	h.UserHandler.PasswordsService = b.PasswordsService
 	h.UserHandler.UserOperationLogService = b.UserOperationLogService
 
 	h.DashboardHandler = NewDashboardHandler(b.UserResourceMappingService, b.LabelService, b.UserService)

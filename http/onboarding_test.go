@@ -27,7 +27,7 @@ func initOnboardingService(f platformtesting.OnboardingFields, t *testing.T) (pl
 	client := struct {
 		*SetupService
 		*Service
-		platform.BasicAuthService
+		platform.PasswordsService
 	}{
 		SetupService: &SetupService{
 			Addr: server.URL,
@@ -35,7 +35,7 @@ func initOnboardingService(f platformtesting.OnboardingFields, t *testing.T) (pl
 		Service: &Service{
 			Addr: server.URL,
 		},
-		BasicAuthService: svc,
+		PasswordsService: svc,
 	}
 
 	done := server.Close

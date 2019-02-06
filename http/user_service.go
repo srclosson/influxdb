@@ -18,7 +18,7 @@ type UserHandler struct {
 	*httprouter.Router
 	UserService             influxdb.UserService
 	UserOperationLogService influxdb.UserOperationLogService
-	BasicAuthService        influxdb.BasicAuthService
+	PasswordsService        influxdb.PasswordsService
 }
 
 const (
@@ -57,7 +57,7 @@ func (h *UserHandler) putPassword(ctx context.Context, w http.ResponseWriter, r 
 		return "", err
 	}
 
-	err = h.BasicAuthService.CompareAndSetPassword(ctx, req.Username, req.PasswordOld, req.PasswordNew)
+	err = h.PasswordsService.CompareAndSetPassword(ctx, req.Username, req.PasswordOld, req.PasswordNew)
 	if err != nil {
 		return "", err
 	}
