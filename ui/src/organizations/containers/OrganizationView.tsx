@@ -30,6 +30,7 @@ import {SpinnerContainer, TechnoSpinner} from 'src/clockface'
 import TabbedPage from 'src/shared/components/tabbed_page/TabbedPage'
 import TabbedPageSection from 'src/shared/components/tabbed_page/TabbedPageSection'
 import Members from 'src/organizations/components/Members'
+import Variables from 'src/organizations/components/Variables'
 import Buckets from 'src/organizations/components/Buckets'
 import Dashboards from 'src/organizations/components/Dashboards'
 import OrgTasksPage from 'src/organizations/components/OrgTasksPage'
@@ -262,6 +263,13 @@ class OrganizationView extends PureComponent<Props> {
                     )
                   }}
                 </GetOrgResources>
+              </TabbedPageSection>
+              <TabbedPageSection
+                id="org-view-tab--variables"
+                url="variables_tab"
+                title="Variables"
+              >
+                <Variables />
               </TabbedPageSection>
             </TabbedPage>
           </div>

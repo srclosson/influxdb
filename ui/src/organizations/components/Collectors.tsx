@@ -41,7 +41,7 @@ import {ErrorHandling} from 'src/shared/decorators/errors'
 
 // Types
 import {Telegraf, Bucket} from '@influxdata/influx'
-import {OverlayState} from 'src/types/v2'
+import {OverlayState} from 'src/types'
 import {setDataLoadersType} from 'src/dataLoaders/actions/dataLoaders'
 import {DataLoaderType} from 'src/types/v2/dataLoaders'
 
