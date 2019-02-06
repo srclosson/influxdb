@@ -23,6 +23,7 @@ type Service struct {
 
 	IDGenerator    influxdb.IDGenerator
 	TokenGenerator influxdb.TokenGenerator
+	Hash           Crypt
 }
 
 // NewService returns an instance of a Service.
@@ -31,6 +32,7 @@ func NewService(kv Store) *Service {
 		Logger:         zap.NewNop(),
 		IDGenerator:    snowflake.NewIDGenerator(),
 		TokenGenerator: rand.NewTokenGenerator(64),
+		Hash:           &Bcrypt{},
 		kv:             kv,
 	}
 }
