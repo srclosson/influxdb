@@ -253,8 +253,17 @@ func (s *Store) UpdateTask(ctx context.Context, req backend.UpdateTaskRequest) (
 			return err
 		}
 		res.OldStatus = backend.TaskStatus(stm.Status)
+		stmChanged := false
+
 		if req.Status != "" {
 			stm.Status = string(req.Status)
+			stmChanged = true
+		}
+		if req.AuthorizationID.Valid() {
+			stm.AuthorizationID = uint64(req.AuthorizationID)
+			stmChanged = true
+		}
+		if stmChanged {
 			stmBytes, err = stm.Marshal()
 			if err != nil {
 				return err

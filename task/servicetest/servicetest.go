@@ -79,6 +79,12 @@ func TestTaskService(t *testing.T, fn BackendComponentFactory) {
 	})
 }
 
+// TestCreds encapsulates credentials needed for a system to properly work with tasks.
+type TestCreds struct {
+	OrgID, UserID, AuthorizationID platform.ID
+	Token                          string
+}
+
 // System, as in "system under test", encapsulates the required parts of a platform.TaskAdapter
 // (the underlying Store, LogReader, and LogWriter) for low-level operations.
 type System struct {
@@ -97,10 +103,10 @@ type System struct {
 
 	// Override for accessing credentials for an individual test.
 	// Callers can leave this nil and the test will create its own random IDs for each test.
-	// However, if the system needs to verify a token, organization, or user,
+	// However, if the system needs to verify credentials,
 	// the caller should set this value and return valid IDs and a token.
 	// It is safe if this returns the same values every time it is called.
-	CredsFunc func() (orgID, userID platform.ID, token string, err error)
+	CredsFunc func() (TestCreds, error)
 
 	// Underlying task service, initialized inside TestTaskService,
 	// either by instantiating a PlatformAdapter directly or by calling TaskServiceFunc.
@@ -108,10 +114,18 @@ type System struct {
 }
 
 func testTaskCRUD(t *testing.T, sys *System) {
-	orgID, userID, _ := creds(t, sys)
+	tc := creds(t, sys)
+	orgID := tc.OrgID
+	userID := tc.UserID
+	authzID := tc.AuthorizationID
 
 	// Create a task.
-	task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+	task := &platform.Task{
+		OrganizationID:  orgID,
+		Owner:           platform.User{ID: userID},
+		AuthorizationID: authzID,
+		Flux:            fmt.Sprintf(scriptFmt, 0),
+	}
 	if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 		t.Fatal(err)
 	}
@@ -160,6 +174,9 @@ func testTaskCRUD(t *testing.T, sys *System) {
 	for fn, f := range found {
 		if f.OrganizationID != orgID {
 			t.Fatalf("%s: wrong organization returned; want %s, got %s", fn, orgID.String(), f.OrganizationID.String())
+		}
+		if f.AuthorizationID != authzID {
+			t.Fatalf("%s: wrong authorization ID returned; want %s, got %s", fn, authzID.String(), f.AuthorizationID.String())
 		}
 		if f.Name != "task #0" {
 			t.Fatalf(`%s: wrong name returned; want "task #0", got %q`, fn, f.Name)
@@ -238,6 +255,16 @@ func testTaskCRUD(t *testing.T, sys *System) {
 		t.Fatalf("expected task status to be active, got %q", f.Status)
 	}
 
+	// Update task: just update the authorization ID.
+	const newAuthzId = 90210
+	f, err = sys.ts.UpdateTask(sys.Ctx, origID, platform.TaskUpdate{AuthorizationID: newAuthzId})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.AuthorizationID != newAuthzId {
+		t.Fatalf("expected authorization ID %v, got %v", newAuthzId, f.AuthorizationID)
+	}
+
 	// Delete task.
 	if err := sys.ts.DeleteTask(sys.Ctx, origID); err != nil {
 		t.Fatal(err)
@@ -250,9 +277,11 @@ func testTaskCRUD(t *testing.T, sys *System) {
 }
 
 func testMetaUpdate(t *testing.T, sys *System) {
-	orgID, userID, _ := creds(t, sys)
+	tc := creds(t, sys)
+	orgID, userID := tc.OrgID, tc.UserID
+	authzID := tc.AuthorizationID
 
-	task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+	task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, AuthorizationID: authzID, Flux: fmt.Sprintf(scriptFmt, 0)}
 	if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 		t.Fatal(err)
 	}
@@ -294,14 +323,17 @@ func testMetaUpdate(t *testing.T, sys *System) {
 }
 
 func testTaskRuns(t *testing.T, sys *System) {
-	orgID, userID, _ := creds(t, sys)
+	tc := creds(t, sys)
+	orgID := tc.OrgID
+	userID := tc.UserID
+	authzID := tc.AuthorizationID
 
 	t.Run("FindRuns and FindRunByID", func(t *testing.T) {
 		t.Parallel()
 
 		// Script is set to run every minute. The platform adapter is currently hardcoded to schedule after "now",
 		// which makes timing of runs somewhat difficult.
-		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, AuthorizationID: authzID, Flux: fmt.Sprintf(scriptFmt, 0)}
 		if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 			t.Fatal(err)
 		}
@@ -449,7 +481,7 @@ func testTaskRuns(t *testing.T, sys *System) {
 
 		// Script is set to run every minute. The platform adapter is currently hardcoded to schedule after "now",
 		// which makes timing of runs somewhat difficult.
-		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, AuthorizationID: authzID, Flux: fmt.Sprintf(scriptFmt, 0)}
 		if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 			t.Fatal(err)
 		}
@@ -540,7 +572,7 @@ func testTaskRuns(t *testing.T, sys *System) {
 	t.Run("ForceRun", func(t *testing.T) {
 		t.Parallel()
 
-		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, AuthorizationID: authzID, Flux: fmt.Sprintf(scriptFmt, 0)}
 		if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 			t.Fatal(err)
 		}
@@ -581,7 +613,7 @@ func testTaskRuns(t *testing.T, sys *System) {
 	t.Run("FindLogs", func(t *testing.T) {
 		t.Parallel()
 
-		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, Flux: fmt.Sprintf(scriptFmt, 0)}
+		task := &platform.Task{OrganizationID: orgID, Owner: platform.User{ID: userID}, AuthorizationID: authzID, Flux: fmt.Sprintf(scriptFmt, 0)}
 		if err := sys.ts.CreateTask(sys.Ctx, task); err != nil {
 			t.Fatal(err)
 		}
@@ -667,7 +699,10 @@ func testTaskRuns(t *testing.T, sys *System) {
 }
 
 func testTaskConcurrency(t *testing.T, sys *System) {
-	orgID, userID, _ := creds(t, sys)
+	tc := creds(t, sys)
+	orgID := tc.OrgID
+	userID := tc.UserID
+	authzID := tc.AuthorizationID
 
 	const numTasks = 450 // Arbitrarily chosen to get a reasonable count of concurrent creates and deletes.
 	taskCh := make(chan *platform.Task, numTasks)
@@ -817,9 +852,10 @@ func testTaskConcurrency(t *testing.T, sys *System) {
 	// Start adding tasks.
 	for i := 0; i < numTasks; i++ {
 		taskCh <- &platform.Task{
-			OrganizationID: orgID,
-			Owner:          platform.User{ID: userID},
-			Flux:           fmt.Sprintf(scriptFmt, i),
+			OrganizationID:  orgID,
+			AuthorizationID: authzID,
+			Owner:           platform.User{ID: userID},
+			Flux:            fmt.Sprintf(scriptFmt, i),
 		}
 	}
 
@@ -829,18 +865,23 @@ func testTaskConcurrency(t *testing.T, sys *System) {
 	extraWg.Wait()
 }
 
-func creds(t *testing.T, s *System) (orgID, userID platform.ID, token string) {
+func creds(t *testing.T, s *System) TestCreds {
 	t.Helper()
 
 	if s.CredsFunc == nil {
-		return idGen.ID(), idGen.ID(), idGen.ID().String()
+		return TestCreds{
+			OrgID:           idGen.ID(),
+			UserID:          idGen.ID(),
+			AuthorizationID: idGen.ID(),
+			Token:           idGen.ID().String(),
+		}
 	}
 
-	o, u, tok, err := s.CredsFunc()
+	c, err := s.CredsFunc()
 	if err != nil {
 		t.Fatal(err)
 	}
-	return o, u, tok
+	return c
 }
 
 const (

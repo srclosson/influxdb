@@ -59,8 +59,13 @@ func httpTaskServiceFactory(t *testing.T) (*servicetest.System, context.CancelFu
 		}
 	}
 
-	cFunc := func() (o, u platform.ID, tok string, err error) {
-		return org.ID, user.ID, auth.Token, nil
+	cFunc := func() (servicetest.TestCreds, error) {
+		return servicetest.TestCreds{
+			OrgID:           org.ID,
+			UserID:          user.ID,
+			AuthorizationID: auth.ID,
+			Token:           auth.Token,
+		}, nil
 	}
 
 	return &servicetest.System{

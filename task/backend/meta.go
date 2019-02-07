@@ -20,6 +20,7 @@ func NewStoreTaskMeta(req CreateTaskRequest, o options.Options) StoreTaskMeta {
 		LatestCompleted: req.ScheduleAfter,
 		EffectiveCron:   o.EffectiveCronString(),
 		Offset:          int32(o.Offset / time.Second),
+		AuthorizationID: uint64(req.AuthorizationID),
 	}
 
 	if stm.Status == "" {

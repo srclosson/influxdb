@@ -86,8 +86,9 @@ stuff f=-123.456,b=true,s="hello"
 	}
 
 	created := &influxdb.Task{
-		OrganizationID: org.ID,
-		Owner:          *be.User,
+		OrganizationID:  org.ID,
+		Owner:           *be.User,
+		AuthorizationID: be.Auth.ID,
 		Flux: fmt.Sprintf(`option task = {
  name: "my_task",
  every: 1s,

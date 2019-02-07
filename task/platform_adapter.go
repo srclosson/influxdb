@@ -83,11 +83,12 @@ func (p pAdapter) CreateTask(ctx context.Context, t *platform.Task) error {
 	}
 
 	req := backend.CreateTaskRequest{
-		Org:           t.OrganizationID,
-		User:          t.Owner.ID,
-		Script:        t.Flux,
-		ScheduleAfter: scheduleAfter,
-		Status:        backend.TaskStatus(t.Status),
+		Org:             t.OrganizationID,
+		User:            t.Owner.ID,
+		AuthorizationID: t.AuthorizationID,
+		Script:          t.Flux,
+		ScheduleAfter:   scheduleAfter,
+		Status:          backend.TaskStatus(t.Status),
 	}
 
 	id, err := p.s.CreateTask(ctx, req)
@@ -112,7 +113,7 @@ func (p pAdapter) UpdateTask(ctx context.Context, id platform.ID, upd platform.T
 	if err := upd.Validate(); err != nil {
 		return nil, err
 	}
-	req := backend.UpdateTaskRequest{ID: id}
+	req := backend.UpdateTaskRequest{ID: id, AuthorizationID: upd.AuthorizationID}
 	if upd.Flux != nil {
 		req.Script = *upd.Flux
 	}
@@ -141,6 +142,8 @@ func (p pAdapter) UpdateTask(ctx context.Context, id platform.ID, upd platform.T
 		Every:  opts.Every.String(),
 		Cron:   opts.Cron,
 		Offset: opts.Offset.String(),
+
+		AuthorizationID: platform.ID(res.NewMeta.AuthorizationID),
 	}
 
 	t, err := p.s.FindTaskByID(ctx, id)
@@ -259,6 +262,7 @@ func toPlatformTask(t backend.StoreTask, m *backend.StoreTaskMeta) (*platform.Ta
 	if m != nil {
 		pt.Status = string(m.Status)
 		pt.LatestCompleted = time.Unix(m.LatestCompleted, 0).Format(time.RFC3339)
+		pt.AuthorizationID = platform.ID(m.AuthorizationID)
 	}
 	return pt, nil
 }

@@ -114,6 +114,12 @@ func (s *inmem) UpdateTask(_ context.Context, req UpdateTaskRequest) (UpdateTask
 		stm.Status = string(req.Status)
 		s.meta[req.ID] = stm
 	}
+
+	if req.AuthorizationID.Valid() {
+		stm.AuthorizationID = uint64(req.AuthorizationID)
+		s.meta[req.ID] = stm
+	}
+
 	res.NewMeta = stm
 	return res, nil
 }

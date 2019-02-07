@@ -11,8 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"go.uber.org/zap"
-
 	platform "github.com/influxdata/influxdb"
 	pcontext "github.com/influxdata/influxdb/context"
 	"github.com/influxdata/influxdb/inmem"
@@ -21,6 +19,7 @@ import (
 	"github.com/influxdata/influxdb/task/backend"
 	platformtesting "github.com/influxdata/influxdb/testing"
 	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
 
 // NewMockTaskBackend returns a TaskBackend with mock services.
@@ -75,16 +74,18 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
 					FindTasksFn: func(ctx context.Context, f platform.TaskFilter) ([]*platform.Task, int, error) {
 						tasks := []*platform.Task{
 							{
-								ID:             1,
-								Name:           "task1",
-								OrganizationID: 1,
-								Owner:          platform.User{ID: 1, Name: "user1"},
+								ID:              1,
+								Name:            "task1",
+								OrganizationID:  1,
+								Owner:           platform.User{ID: 1, Name: "user1"},
+								AuthorizationID: 0x100,
 							},
 							{
-								ID:             2,
-								Name:           "task2",
-								OrganizationID: 2,
-								Owner:          platform.User{ID: 2, Name: "user2"},
+								ID:              2,
+								Name:            "task2",
+								OrganizationID:  2,
+								Owner:           platform.User{ID: 2, Name: "user2"},
+								AuthorizationID: 0x200,
 							},
 						}
 						return tasks, len(tasks), nil
@@ -137,6 +138,7 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
       "orgID": "0000000000000001",
       "org": "test",
       "status": "",
+			"authorizationID": "0000000000000100",
       "flux": ""
     },
     {
@@ -162,6 +164,7 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
 	  "orgID": "0000000000000002",
 	  "org": "test",
       "status": "",
+			"authorizationID": "0000000000000200",
       "flux": ""
     }
   ]
@@ -227,6 +230,7 @@ func TestTaskHandler_handlePostTasks(t *testing.T) {
 						ID:   1,
 						Name: "user1",
 					},
+					AuthorizationID: 0x100,
 				},
 			},
 			fields: fields{
@@ -256,6 +260,7 @@ func TestTaskHandler_handlePostTasks(t *testing.T) {
   "orgID": "0000000000000001",
   "org": "test",
   "status": "",
+	"authorizationID": "0000000000000100",
   "flux": ""
 }
 `,
@@ -778,8 +783,9 @@ func TestTaskHandler_NotFoundStatus(t *testing.T) {
 
 func TestTaskUserResourceMap(t *testing.T) {
 	task := platform.Task{
-		Name:           "task1",
-		OrganizationID: 1,
+		Name:            "task1",
+		OrganizationID:  1,
+		AuthorizationID: 0x100,
 	}
 
 	b, err := json.Marshal(task)

@@ -23,6 +23,7 @@ type Task struct {
 	ID              ID     `json:"id,omitempty"`
 	OrganizationID  ID     `json:"orgID"`
 	Organization    string `json:"org"`
+	AuthorizationID ID     `json:"authorizationID"`
 	Name            string `json:"name"`
 	Status          string `json:"status"`
 	Owner           User   `json:"-"`
@@ -92,6 +93,9 @@ type TaskUpdate struct {
 	Status *string `json:"status,omitempty"`
 	// Options gets unmarshalled from json as if it was flat, with the same level as Flux and Status.
 	Options options.Options // when we unmarshal this gets unmarshalled from flat key-values
+
+	// Optional authorization ID override.
+	AuthorizationID ID `json:"authorizationID,omitempty"`
 }
 
 func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
@@ -115,6 +119,8 @@ func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 		Concurrency int64 `json:"concurrency,omitempty"`
 
 		Retry int64 `json:"retry,omitempty"`
+
+		AuthorizationID ID `json:"authorizationID,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(data, &jo); err != nil {
@@ -128,6 +134,7 @@ func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 	t.Options.Retry = jo.Retry
 	t.Flux = jo.Flux
 	t.Status = jo.Status
+	t.AuthorizationID = jo.AuthorizationID
 
 	return nil
 }
@@ -150,6 +157,8 @@ func (t TaskUpdate) MarshalJSON() ([]byte, error) {
 		Concurrency int64 `json:"concurrency,omitempty"`
 
 		Retry int64 `json:"retry,omitempty"`
+
+		AuthorizationID ID `json:"authorizationID,omitempty"`
 	}{}
 	jo.Name = t.Options.Name
 	jo.Cron = t.Options.Cron
@@ -159,6 +168,7 @@ func (t TaskUpdate) MarshalJSON() ([]byte, error) {
 	jo.Retry = t.Options.Retry
 	jo.Flux = t.Flux
 	jo.Status = t.Status
+	jo.AuthorizationID = t.AuthorizationID
 	return json.Marshal(jo)
 }
 
@@ -166,7 +176,7 @@ func (t TaskUpdate) Validate() error {
 	switch {
 	case t.Options.Every != 0 && t.Options.Cron != "":
 		return errors.New("cannot specify both every and cron")
-	case t.Flux == nil && t.Status == nil && t.Options.IsZero():
+	case t.Flux == nil && t.Status == nil && t.Options.IsZero() && !t.AuthorizationID.Valid():
 		return errors.New("cannot update task without content")
 	}
 	return nil
