@@ -5,6 +5,7 @@ export type PlotAction =
   | UnregisterLayerAction
   | SetDimensionsAction
   | SetTableAction
+  | SetColorsAction
 
 interface RegisterLayerAction {
   type: 'REGISTER_LAYER'
@@ -12,16 +13,18 @@ interface RegisterLayerAction {
     layerKey: string
     table: Table
     aesthetics: AestheticDataMappings
+    colors?: string[]
   }
 }
 
 export const registerLayer = (
   layerKey: string,
   table: Table,
-  aesthetics: AestheticDataMappings
+  aesthetics: AestheticDataMappings,
+  colors?: string[]
 ): RegisterLayerAction => ({
   type: 'REGISTER_LAYER',
-  payload: {layerKey, table, aesthetics},
+  payload: {layerKey, table, aesthetics, colors},
 })
 
 interface UnregisterLayerAction {
@@ -55,4 +58,17 @@ interface SetTableAction {
 export const setTable = (table: Table): SetTableAction => ({
   type: 'SET_TABLE',
   payload: {table},
+})
+
+interface SetColorsAction {
+  type: 'SET_COLORS'
+  payload: {colors: string[]; layerKey?: string}
+}
+
+export const setColors = (
+  colors: string[],
+  layerKey?: string
+): SetColorsAction => ({
+  type: 'SET_COLORS',
+  payload: {colors, layerKey},
 })

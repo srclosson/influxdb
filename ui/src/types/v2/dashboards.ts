@@ -227,6 +227,7 @@ export interface HistogramView {
   fill: string
   position: HistogramPosition
   binCount: number
+  colors: Color[]
 }
 
 export interface MarkdownView {

@@ -18,6 +18,7 @@ export interface Props {
   fill?: string
   position?: Position
   bins?: number
+  colors?: string[]
 }
 
 export const Histogram: SFC<Props> = props => {
@@ -29,6 +30,7 @@ export const Histogram: SFC<Props> = props => {
   const table = defaults.table
   const x = props.x || defaults.aesthetics.x
   const fill = props.fill || defaults.aesthetics.fill
+  const colors = props.colors
 
   useEffect(
     () => {
@@ -49,11 +51,11 @@ export const Histogram: SFC<Props> = props => {
         position
       )
 
-      dispatch(registerLayer(layerKey, statTable, mappings))
+      dispatch(registerLayer(layerKey, statTable, mappings, colors))
 
       return () => dispatch(unregisterLayer(layerKey))
     },
-    [table, x, fill, position, bins]
+    [table, x, fill, position, bins, colors]
   )
 
   if (!layer) {
@@ -64,15 +66,17 @@ export const Histogram: SFC<Props> = props => {
     innerWidth,
     innerHeight,
     defaults: {
-      scales: {x: xScale, y: yScale},
+      scales: {x: xScale, y: yScale, fill: layerFillScale},
     },
   } = props.env
 
   const {
     aesthetics,
     table: {columns},
-    scales: {fill: fillScale},
+    scales: {fill: defaultFillScale},
   } = layer
+
+  const fillScale = layerFillScale || defaultFillScale
 
   return (
     <HistogramBars

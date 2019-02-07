@@ -13,10 +13,7 @@ import {
   TICK_PADDING_TOP,
 } from 'src/minard'
 import {PlotAction} from 'src/minard/actions'
-
-import {LINE_COLORS_A} from 'src/shared/constants/graphColorPalettes'
-
-const COLORS = LINE_COLORS_A.map(c => c.hex)
+import {assert} from 'src/minard/utils/assert'
 
 export const INITIAL_PLOT_ENV: PlotEnv = {
   width: 0,
@@ -46,13 +43,13 @@ export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
   produce(state, draftState => {
     switch (action.type) {
       case 'REGISTER_LAYER': {
-        const {layerKey, table, aesthetics} = action.payload
+        const {layerKey, table, aesthetics, colors} = action.payload
 
-        draftState.layers[layerKey] = {table, aesthetics, scales: {}}
+        draftState.layers[layerKey] = {table, aesthetics, colors, scales: {}}
 
         computeXYDomain(draftState)
         computeXYLayout(draftState)
-        computeFillScale(draftState.layers[layerKey])
+        computeFillScales(draftState)
 
         return
       }
@@ -81,6 +78,22 @@ export const reducer = (state: PlotEnv, action: PlotAction): PlotEnv =>
 
       case 'SET_TABLE': {
         draftState.defaults.table = action.payload.table
+
+        return
+      }
+
+      case 'SET_COLORS': {
+        const {colors, layerKey} = action.payload
+
+        if (layerKey) {
+          draftState.layers[layerKey].colors = colors
+        } else {
+          draftState.defaults.colors = colors
+        }
+
+        computeFillScales(draftState)
+
+        return
       }
     }
   })
@@ -122,7 +135,7 @@ const computeXYDomain = (draftState: PlotEnv): void => {
 const getTicks = ([d0, d1]: number[], length: number): string[] => {
   const approxTickWidth =
     Math.max(String(d0).length, String(d1).length) * TICK_CHAR_WIDTH
-  const TICK_DENSITY = 0.2
+  const TICK_DENSITY = 0.6
   const numTicks = Math.round((length / approxTickWidth) * TICK_DENSITY)
   const result = ticks(d0, d1, numTicks).map(t => String(t))
 
@@ -161,20 +174,9 @@ const computeXYLayout = (draftState: PlotEnv): void => {
     .range([innerHeight, 0])
 }
 
-const computeFillScale = (draftState: Layer) => {
-  const {
-    table,
-    aesthetics: {fill},
-  } = draftState
-
-  if (!fill) {
-    return
-  }
-
-  const domain = [...new Set(table.columns[fill])]
-
+const getColorScale = (domain: any[], colors: string[]) => {
   const range = chroma
-    .scale(COLORS)
+    .scale(colors)
     .mode('lch')
     .colors(domain.length)
 
@@ -182,5 +184,60 @@ const computeFillScale = (draftState: Layer) => {
     .domain(domain)
     .range(range)
 
-  draftState.scales.fill = scale
+  return scale
+}
+
+const computeFillScales = (draftState: PlotEnv) => {
+  const defaultLayer = draftState.defaults
+  const layers = Object.values(draftState.layers)
+
+  const getFillCol = (layer: Layer): any[] => {
+    const fillColName = layer.aesthetics.fill
+
+    let fillCol: any[]
+
+    if (layer.table && layer.table.columns[fillColName]) {
+      fillCol = layer.table.columns[fillColName]
+    } else if (defaultLayer.table) {
+      fillCol = defaultLayer.table.columns[fillColName]
+    }
+
+    assert(`couldnt find column ${fillColName} for fill`, !!fillCol)
+
+    return fillCol
+  }
+
+  // Compute fill scales for layers that require their own scale
+  layers
+    .filter(
+      layer => layer.aesthetics.fill && layer.colors && layer.colors.length
+    )
+    .forEach(layer => {
+      const fillDomain = [...new Set(getFillCol(layer))]
+
+      layer.scales.fill = getColorScale(fillDomain, layer.colors)
+    })
+
+  // Compute the default scale
+  const layersUsingDefaultScale = layers.filter(
+    layer => layer.aesthetics.fill && (!layer.colors || !layer.colors.length)
+  )
+
+  const defaultScaleIsNeeded =
+    layersUsingDefaultScale.length || defaultLayer.aesthetics.fill
+
+  if (!defaultScaleIsNeeded) {
+    return
+  }
+
+  const fillDomain = new Set()
+  const fillDomainLayers = defaultLayer.aesthetics.fill
+    ? [defaultLayer, ...layersUsingDefaultScale]
+    : layersUsingDefaultScale
+
+  fillDomainLayers
+    .map(getFillCol)
+    .forEach(col => col.forEach(d => fillDomain.add(d)))
+
+  defaultLayer.scales.fill = getColorScale([...fillDomain], defaultLayer.colors)
 }

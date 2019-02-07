@@ -1,13 +1,7 @@
 import React, {useRef, useLayoutEffect, SFC} from 'react'
-import chroma from 'chroma-js'
 
-import {Scale, HistogramPosition} from 'src/minard'
+import {Scale, HistogramPosition, DEFAULT_COLOR} from 'src/minard'
 import {clearCanvas} from 'src/minard/utils/clearCanvas'
-
-import {LINE_COLORS_A} from 'src/shared/constants/graphColorPalettes'
-
-const COLOR = chroma(LINE_COLORS_A[0].hex)
-const DEFAULT_FILL = COLOR.alpha(0.5).css()
 
 interface Props {
   width: number
@@ -17,9 +11,9 @@ interface Props {
   yMin: number[]
   yMax: number[]
   fill: string[] | boolean[]
-  xScale: Scale
-  yScale: Scale
-  fillScale: Scale
+  xScale: Scale<number, number>
+  yScale: Scale<number, number>
+  fillScale: Scale<string | number | boolean, string>
   position: HistogramPosition
 }
 
@@ -47,11 +41,11 @@ const drawBars = (
       continue
     }
 
-    const x = Math.floor(xScale(xMin[i]))
-    const _y = Math.floor(yScale(yMax[i]))
-    const width = Math.floor(xScale(xMax[i])) - Math.floor(x)
-    const height = Math.floor(yScale(yMin[i])) - Math.floor(_y) - 1
-    const color = fill && fillScale ? fillScale(fill[i]) : DEFAULT_FILL
+    const x = xScale(xMin[i])
+    const _y = yScale(yMax[i])
+    const width = xScale(xMax[i]) - x
+    const height = yScale(yMin[i]) - _y
+    const color = fill && fillScale ? fillScale(fill[i]) : DEFAULT_COLOR
 
     context.globalAlpha = 0.6
     context.fillStyle = color

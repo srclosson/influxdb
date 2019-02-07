@@ -27,6 +27,7 @@ export const bin = (
     const x = xCol[i]
     const fill = fillCol ? fillCol[i] : 'default'
 
+    // TODO: Use binary search
     const bin = bins.find(
       (b, i) => (x < b.max && x >= b.min) || i === bins.length - 1
     )

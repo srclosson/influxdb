@@ -1,19 +1,24 @@
 import React, {useReducer, useEffect, SFC, CSSProperties} from 'react'
 
-import {Table, PlotEnv} from 'src/minard'
-import {setDimensions, setTable} from 'src/minard/actions'
+import {Table, PlotEnv, CATEGORY_10} from 'src/minard'
+import {setDimensions, setTable, setColors} from 'src/minard/actions'
 import {Axes} from 'src/minard/components/Axes'
 import {reducer, INITIAL_PLOT_ENV} from 'src/minard/plotEnv'
 
 export interface Props {
   // Required props
+  // --------------
+  //
   table: Table
   width: number
   height: number
   children: (env: PlotEnv) => JSX.Element
 
   // Aesthetic mappings
+  // ------------------
+  //
   x?: string
+  fill?: string
   // y?: string
   // start?: string
   // stop?: string
@@ -21,12 +26,17 @@ export interface Props {
   // upper?: string
   // stroke?: string
   // strokeWidth?: string
-  fill?: string
   // shape?: ShapeKind
   // radius?: number
   // alpha?: number
 
   // Misc options
+  // ------------
+  //
+  axesStroke?: string
+  tickFont?: string
+  tickFill?: string
+  colors?: string[]
   // xBrushable?: boolean
   // yBrushable?: boolean
   // xAxisTitle?: string
@@ -35,12 +45,10 @@ export interface Props {
   // yAxisPrefix?: string
   // xAxisSuffix?: string
   // yAxisSuffix?: string
-  axesStroke?: string
-  tickFont?: string
-  tickFill?: string
   // xTicksStroke?: string
   // yTicksStroke?: string
 }
+
 
 export const Plot: SFC<Props> = ({
   width,
@@ -49,6 +57,7 @@ export const Plot: SFC<Props> = ({
   fill,
   x,
   children,
+  colors = CATEGORY_10,
   axesStroke = '#31313d',
   tickFont = 'bold 10px Roboto',
   tickFill = '#8e91a1',
@@ -57,11 +66,13 @@ export const Plot: SFC<Props> = ({
     ...INITIAL_PLOT_ENV,
     width,
     height,
-    defaults: {table, aesthetics: {x, fill}, scales: {}},
+    defaults: {table, colors, aesthetics: {x, fill}, scales: {}},
   })
 
+  // TODO: Should these be dispatched on initial render?
   useEffect(() => dispatch(setTable(table)), [table])
   useEffect(() => dispatch(setDimensions(width, height)), [width, height])
+  useEffect(() => dispatch(setColors(colors)), [colors])
 
   const plotStyle: CSSProperties = {
     position: 'relative',

@@ -26,12 +26,12 @@ type Props = OwnProps & StateProps
 
 const InfluxHistogram: SFC<Props> = props => {
   const {tables, width, height} = props
-  const {x, fill, binCount, position} = props.properties
-
+  const {x, fill, binCount, position, colors} = props.properties
   const {table} = useMemo(() => toMinardTable(tables), [tables])
+  const colorHexes = colors.map(c => c.hex)
 
   return (
-    <Plot table={table} width={width} height={height}>
+    <Plot table={table} width={width} height={height} colors={colorHexes}>
       {env => (
         <Histogram
           env={env}

@@ -15,6 +15,7 @@ import {
   InfluxLanguage,
   QueryEditMode,
 } from 'src/types/v2/dashboards'
+import {DEFAULT_LINE_COLORS} from 'src/shared/constants/graphColorPalettes'
 import {
   DEFAULT_GAUGE_COLORS,
   DEFAULT_THRESHOLDS_LIST_COLORS,
@@ -126,7 +127,8 @@ const NEW_VIEW_CREATORS = {
       x: '_value',
       fill: 'table',
       position: HistogramPosition.Stacked,
-      binCount: 60,
+      binCount: 30,
+      colors: DEFAULT_LINE_COLORS,
     },
   }),
   [ViewType.SingleStat]: (): NewView<SingleStatView> => ({

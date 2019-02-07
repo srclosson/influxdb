@@ -5,6 +5,19 @@ export const TICK_CHAR_WIDTH = 7
 export const TICK_CHAR_HEIGHT = 10
 export const TICK_PADDING_RIGHT = 8
 export const TICK_PADDING_TOP = 5
+export const CATEGORY_10 = [
+  '#1f77b4',
+  '#ff7f0e',
+  '#2ca02c',
+  '#d62728',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  '#17becf',
+]
+export const DEFAULT_COLOR = CATEGORY_10[0]
 
 export {Plot} from 'src/minard/components/Plot'
 
@@ -13,20 +26,21 @@ export {
   Position as HistogramPosition,
 } from 'src/minard/components/Histogram'
 
-export type Scale = any
+export type Scale<D = number, R = number> = (x: D) => R
 
 export interface AestheticDataMappings {
   [aestheticName: string]: string
 }
 
 export interface AestheticScaleMappings {
-  [aestheticName: string]: Scale
+  [aestheticName: string]: Scale<any, any>
 }
 
 export interface Layer {
   table?: Table
   aesthetics: AestheticDataMappings
   scales: AestheticScaleMappings
+  colors?: string[]
 }
 
 export interface Margins {
